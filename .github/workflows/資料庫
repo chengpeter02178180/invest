@@ -1,4 +1,4 @@
-CREATE  DATABASE `sql_tutorial`;   #新建一個資料庫    
+CREATE  DATABASE `sql_tutorial`;   #新建一個資料庫    使用MySQL資料庫
 SHOW DATABASES;
 #DROP database `sql_tutorial;  #刪除資料庫
 USE `sql_tutorial`;
