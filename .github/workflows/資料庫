@@ -1,0 +1,153 @@
+CREATE  DATABASE `sql_tutorial`;   #新建一個資料庫    
+SHOW DATABASES;
+#DROP database `sql_tutorial;  #刪除資料庫
+USE `sql_tutorial`;
+CREATE TABLE `employee`(
+	`emp_id` INT PRIMARY KEY,
+    `name` VARCHAR(20),
+    `birth_date` DATE,
+    `sex` VARCHAR(2),
+    `salary` INT,
+    `branch_id` INT,
+    `sup_id` INT
+);
+
+
+ALTER TABLE `employee` ADD phone INT;     #想要在原本的表格裡在創建一個KEY
+ALTER TABLE `employee` DROP COLUMN phone; #想要刪除表格裡面的KEY
+#DROP TABLE `employee` #直接刪除表格 
+
+
+CREATE TABLE `branch`(
+     `branch_id` INT PRIMARY KEY,
+     `branch_name` VARCHAR(20),
+     `manager_id` INT,
+     FOREIGN KEY(`manager_id`) REFERENCES `employee`(`emp_id`) ON DELETE SET NULL
+
+);
+
+ALTER TABLE `employee`
+ADD FOREIGN KEY(`branch_id`)
+REFERENCES `branch`(`branch_id`)
+ON DELETE SET NULL;
+
+ALTER TABLE `employee`
+ADD FOREIGN KEY(`sup_id`)
+REFERENCES `employee`(`emp_id`)
+ON DELETE SET NULL;
+
+
+
+CREATE TABLE `client`(
+     `client_id` INT PRIMARY KEY,
+     `client_name` VARCHAR(20),
+     `phone` VARCHAR(20)
+     
+);
+
+
+CREATE TABLE `works_with`(
+     `emp_id` INT,
+     `client_id` INT,
+     `total_sales` INT,
+     PRIMARY KEY(`emp_id`,`client_id`),
+     FOREIGN KEY(`emp_id`) REFERENCES `employee`(`emp_id`) ON DELETE CASCADE,
+	 FOREIGN KEY(`client_id`) REFERENCES `client`(`client_id`) ON DELETE CASCADE
+
+
+);
+
+
+#--新增公司資料
+
+INSERT INTO `branch` VALUES(1,'研發',NULL);
+INSERT INTO `branch` VALUES(2,'行政',NULL);
+INSERT INTO `branch` VALUES(3,'資訊',NULL);
+
+
+
+
+#--新增員工資料
+INSERT INTO `employee` VALUES(206,'小黃','1998-10-08','F',50000,1,NULL);
+INSERT INTO `employee` VALUES(207,'小綠','1985-11-08','F',80000,2,206);
+INSERT INTO `employee` VALUES(208,'小黑','1999-8-08','M',70000,3,206);
+INSERT INTO `employee` VALUES(209,'小白','1997-2-17','M',60000,3,207);
+INSERT INTO `employee` VALUES(210,'小藍','2004-2-17','F',90000,1,207);
+
+UPDATE`employee`        #修改資料
+SET `sex`='M'
+WHERE`emp_id`=208;
+
+DELETE FROM `employee`  #刪除資料
+WHERE `emp_id`=5;
+
+
+UPDATE `branch`
+SET `manager_id`=208
+WHERE `branch_id`=3;
+
+INSERT INTO `client` VALUES(400,'阿貓','0955755961');
+INSERT INTO `client` VALUES(401,'阿狗','0971017967');
+INSERT INTO `client` VALUES(402,'阿豹','0966892512');
+INSERT INTO `client` VALUES(403,'露西','0955755962');
+INSERT INTO `client` VALUES(404,'艾瑞克','0955755963');
+
+INSERT INTO `works_with` VALUES(206,400,'70000');
+INSERT INTO `works_with` VALUES(207,401,'60000');
+INSERT INTO `works_with` VALUES(208,402,'50000');
+INSERT INTO `works_with` VALUES(209,403,'80000');
+INSERT INTO `works_with` VALUES(210,404,'90000');
+
+#上面的是創建一個資料庫和立面的資料
+
+
+#取資料庫裡面的資料
+
+SELECT *FROM `employee`;   #取得所有員工的資料
+
+SELECT *FROM `client`;       #取的所有客戶資料
+
+SELECT *FROM `employee` ORDER BY `salary`;      #按公司薪水低到高取得工資料
+
+SELECT *FROM `employee` ORDER BY `salary` DESC LIMIT 3;   #按公司薪水取前三高
+
+SELECT `name` ,`emp_id` FROM `employee` ;    #取的所有員工的名子和員工id
+
+
+#聚合函數(比較準確抓取數據)
+
+SELECT COUNT(*)FROM `employee`;  #取得公司所有員工數     COUNT是表示有幾筆資料
+SELECT COUNT(`emp_id`)FROM `employee`;   #COUNT括號裡也可以加其他的KEY屬性
+
+
+SELECT COUNT(*)FROM `employee` WHERE `birth_date`>'1990-1-1' AND `sex`='F';  #取的所有出生於大於1990-1-1 之後的男性員工數
+
+SELECT AVG(`salary`)FROM `employee`;
+
+SELECT SUM(`salary`)FROM `employee`;
+
+SELECT MAX(`salary`)FROM`employee`;
+
+#Wildcards 萬用字元 %代表多個字元,_代表一個字元 不錯用
+SELECT *FROM `client` WHERE `phone` LIKE '%961'; #取得電話號碼尾數是961的客戶
+SELECT *FROM `client` WHERE `phone` LIKE '0955755961'; 
+SELECT *FROM `employee` WHERE `name` LIKE '小白';   #這一行是我無聊試試看的,竟然可以用
+
+SELECT *FROM `employee` WHERE `birth_date` LIKE '_____10%';  #取得生日在12月的員工   一個底線代表一個字元
+
+#UNION 聯集(必須是相同屬性 INT ,VARCHAR)之類的
+
+SELECT `name` FROM `employee` UNION SELECT `client_name` FROM `client`;  #取員工的名子和客戶名子
+SELECT `emp_id`,`name` FROM `employee` UNION SELECT `client_id`,`client_name`FROM `client`;#員工的id+名字和客戶的id+名字
+
+#join 連接 (可以把兩個表格連接再一起)
+
+SELECT `emp_id`,`name`,`branch_name`FROM `employee` JOIN `branch` ON `emp_id`=`manager_id`;# 取得部門經理的名字  方法1
+
+SELECT `employee`.`emp_id`,`emp;oyee`.`name`,`branch`.`branch_name`FROM `employee` JOIN `branch` ON `employee`.`emp_id`=`branch`.`manager_id`;    #用這種寫法會比較清楚,如果兩個表格出現相同的名字話用這種寫法不會搞混
+
+
+
+#subquery 子查詢
+
+SELECT `name` FROM `employee` WHERE `emp_id`=(SELECT `manager_id` FROM `branch` WHERE `branch_name`='研發');   #找出研發部經理名字
